@@ -97,6 +97,7 @@ export interface GameStore {
   toggleThermalVision: () => void;
   toggleCartAttach: () => void;
   clearNotification: () => void;
+  resetShift: () => void; // Reset shift and clear persistent state
 
   // Physical Repair & Maintenance Actions
   connectPsu: (rackId: number, psu: "A" | "B", phase: ElectricalPhase) => void;
@@ -117,7 +118,7 @@ export interface GameStore {
   generateProceduralTicket: () => void;
 }
 
-const initialRacks: RackState[] = [
+const getInitialRacks = (): RackState[] => [
   {
     id: 1,
     name: "Web Ingress Core",
@@ -212,6 +213,45 @@ const initialRacks: RackState[] = [
   },
 ];
 
+const getInitialWorkOrders = (): WorkOrder[] => [
+  {
+    id: "WO-101",
+    title: "SPOF Vulnerability in AI Analytics Node",
+    description: "Rack #3 is running on a single PSU. Connect redundant power to PDU-B on Phase L3.",
+    reward: 1200,
+    penalty: 0.05,
+    timeRemaining: 300,
+    type: "spof",
+    targetRackId: 3,
+    completed: false,
+    failed: false,
+  },
+  {
+    id: "WO-102",
+    title: "NEC De-rating Fire Hazard in DB Master",
+    description: "Rack #2 pulls 32A through AWG 14 conductors. Replace with AWG 10 or AWG 2 immediately.",
+    reward: 1500,
+    penalty: 0.1,
+    timeRemaining: 240,
+    type: "overheat",
+    targetRackId: 2,
+    completed: false,
+    failed: false,
+  },
+  {
+    id: "WO-103",
+    title: "Network Bottleneck on AI Backbone",
+    description: "Rack #3 has Cat5e copper patch cords restricting 10G OM3 backbone throughput. Upgrade to Fiber.",
+    reward: 1000,
+    penalty: 0.02,
+    timeRemaining: 400,
+    type: "bottleneck",
+    targetRackId: 3,
+    completed: false,
+    failed: false,
+  },
+];
+
 export const useGameStore = create<GameStore>()(
   persist(
     (set) => ({
@@ -224,45 +264,8 @@ export const useGameStore = create<GameStore>()(
       gameOverReason: null,
 
       // Infrastructure
-      racks: initialRacks,
-      workOrders: [
-        {
-          id: "WO-101",
-          title: "SPOF Vulnerability in AI Analytics Node",
-          description: "Rack #3 is running on a single PSU. Connect redundant power to PDU-B on Phase L3.",
-          reward: 1200,
-          penalty: 0.05,
-          timeRemaining: 300,
-          type: "spof",
-          targetRackId: 3,
-          completed: false,
-          failed: false,
-        },
-        {
-          id: "WO-102",
-          title: "NEC De-rating Fire Hazard in DB Master",
-          description: "Rack #2 pulls 32A through AWG 14 conductors. Replace with AWG 10 or AWG 2 immediately.",
-          reward: 1500,
-          penalty: 0.1,
-          timeRemaining: 240,
-          type: "overheat",
-          targetRackId: 2,
-          completed: false,
-          failed: false,
-        },
-        {
-          id: "WO-103",
-          title: "Network Bottleneck on AI Backbone",
-          description: "Rack #3 has Cat5e copper patch cords restricting 10G OM3 backbone throughput. Upgrade to Fiber.",
-          reward: 1000,
-          penalty: 0.02,
-          timeRemaining: 400,
-          type: "bottleneck",
-          targetRackId: 3,
-          completed: false,
-          failed: false,
-        },
-      ],
+      racks: getInitialRacks(),
+      workOrders: getInitialWorkOrders(),
       pduAOnline: true,
       pduBOnline: true,
       hvacOnline: true,
@@ -298,6 +301,36 @@ export const useGameStore = create<GameStore>()(
       toggleThermalVision: () => set((state) => ({ thermalVisionMode: !state.thermalVisionMode })),
       toggleCartAttach: () => set((state) => ({ cartAttached: !state.cartAttached })),
       clearNotification: () => set({ notification: null }),
+
+      resetShift: () => {
+        localStorage.removeItem("dcca-simulator-storage");
+        set({
+          day: 1,
+          timeOfDay: 0,
+          sla: 99.999,
+          budget: 15000,
+          gameOver: false,
+          gameOverReason: null,
+          racks: getInitialRacks(),
+          workOrders: getInitialWorkOrders(),
+          pduAOnline: true,
+          pduBOnline: true,
+          hvacOnline: true,
+          mainBreakerTripped: false,
+          cartAttached: false,
+          deliveryQueue: [],
+          cartInventory: {
+            "cable-cat6a": 4,
+            "cable-om3": 2,
+            "psu-spare": 3,
+          },
+          notification: {
+            title: "SHIFT RESTARTED",
+            message: "All infrastructure metrics restored to baseline. Good luck Operator.",
+            type: "info",
+          },
+        });
+      },
 
       togglePdu: (pdu) => set((state) => {
         const nextA = pdu === "A" ? !state.pduAOnline : state.pduAOnline;

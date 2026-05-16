@@ -55,7 +55,8 @@ export function HUDOverlay() {
     purgeCryptoMinerWithKvm,
     extinguishFire,
     buyFromShop,
-    transferCartItem
+    transferCartItem,
+    resetShift
   } = useGameStore();
 
   const [modalOpen, setModalOpen]   = useState(false);
@@ -109,7 +110,13 @@ export function HUDOverlay() {
             <div><span className="text-slate-500 block">Final Day Reached</span><span className="font-bold text-lg">Day {day}</span></div>
             <div><span className="text-slate-500 block">Corporate Budget Left</span><span className="font-bold text-lg text-emerald-400">${budget}</span></div>
           </div>
-          <button onClick={() => window.location.reload()} className="w-full py-4 bg-rose-600 hover:bg-rose-500 font-bold rounded-2xl shadow-xl transition-all">
+          <button 
+            onClick={() => {
+              resetShift();
+              window.location.reload();
+            }} 
+            className="w-full py-4 bg-rose-600 hover:bg-rose-500 font-bold rounded-2xl shadow-xl transition-all cursor-pointer"
+          >
             COMMENCE NEW SHIFT (RESTART)
           </button>
         </div>
