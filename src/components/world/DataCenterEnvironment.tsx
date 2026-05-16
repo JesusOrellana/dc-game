@@ -116,8 +116,8 @@ export function DataCenterEnvironment() {
           <boxGeometry args={[28, 0.4, 0.8]} />
           <meshStandardMaterial color="#facc15" roughness={0.3} metalness={0.2} />
         </mesh>
-        {/* Big Industrial HVAC Ducting */}
-        <mesh position={[0, 2.2, 4]} castShadow receiveShadow>
+        {/* Big Industrial HVAC Ducting (Rotated horizontally across ceiling) */}
+        <mesh position={[0, 2.2, 4]} rotation={[0, 0, Math.PI / 2]} castShadow receiveShadow>
           <cylinderGeometry args={[1.2, 1.2, 28, 24]} />
           <meshStandardMaterial color={hvacOnline ? "#cbd5e1" : "#64748b"} metalness={0.8} roughness={0.2} />
         </mesh>
