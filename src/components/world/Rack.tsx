@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { RigidBody } from "@react-three/rapier";
 import * as THREE from "three";
-import { RackState, useGameStore } from "../../store/useGameStore";
+import { useGameStore, type RackState } from "../../store/useGameStore";
 
 export function Rack({ rack }: { rack: RackState }) {
   const { activeInteraction, thermalVisionMode } = useGameStore();

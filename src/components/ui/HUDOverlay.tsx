@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   Server
 } from "lucide-react";
-import { useGameStore, CableStandard, AwgGauge } from "../../store/useGameStore";
+import { useGameStore, type CableStandard, type AwgGauge } from "../../store/useGameStore";
 
 export function HUDOverlay() {
   const { 
