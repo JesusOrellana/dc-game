@@ -1,14 +1,24 @@
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useGameStore } from "../../store/useGameStore";
+
+// Pure helper function declared outside React component scope
+function generateParticlePositions(): Float32Array {
+  const arr = new Float32Array(900);
+  for (let i = 0; i < 900; i++) {
+    arr[i] = (Math.random() - 0.5) * 24;
+  }
+  return arr;
+}
 
 export function DCLighting() {
   const { pduAOnline, pduBOnline, hvacOnline, thermalVisionMode } = useGameStore();
   const emergencyMode = !pduAOnline || !pduBOnline;
   const alarmLightRef = useRef<THREE.PointLight>(null);
-
   const particlesRef = useRef<THREE.Points>(null);
+
+  const particlePositions = useMemo(() => generateParticlePositions(), []);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
@@ -51,7 +61,7 @@ export function DCLighting() {
       {/* HVAC Cold Aisle Dust Particles */}
       <points ref={particlesRef}>
         <bufferGeometry>
-          <bufferAttribute attach="attributes-position" count={300} array={new Float32Array(900).map(() => (Math.random() - 0.5) * 24)} itemSize={3} />
+          <bufferAttribute attach="attributes-position" count={300} array={particlePositions} itemSize={3} />
         </bufferGeometry>
         <pointsMaterial size={0.08} color="#38bdf8" transparent opacity={hvacOnline ? 0.4 : 0} />
       </points>

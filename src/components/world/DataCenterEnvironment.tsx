@@ -1,5 +1,4 @@
 import { RigidBody } from "@react-three/rapier";
-import * as THREE from "three";
 import { useGameStore } from "../../store/useGameStore";
 
 export function DataCenterEnvironment() {
