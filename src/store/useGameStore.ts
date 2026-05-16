@@ -220,7 +220,7 @@ const getInitialWorkOrders = (): WorkOrder[] => [
     description: "Rack #3 is running on a single PSU. Connect redundant power to PDU-B on Phase L3.",
     reward: 1200,
     penalty: 0.05,
-    timeRemaining: 300,
+    timeRemaining: 360,
     type: "spof",
     targetRackId: 3,
     completed: false,
@@ -232,7 +232,7 @@ const getInitialWorkOrders = (): WorkOrder[] => [
     description: "Rack #2 pulls 32A through AWG 14 conductors. Replace with AWG 10 or AWG 2 immediately.",
     reward: 1500,
     penalty: 0.1,
-    timeRemaining: 240,
+    timeRemaining: 360,
     type: "overheat",
     targetRackId: 2,
     completed: false,
@@ -576,7 +576,8 @@ export const useGameStore = create<GameStore>()(
       }),
 
       generateProceduralTicket: () => set((state) => {
-        if (state.workOrders.filter((wo) => !wo.completed && !wo.failed).length >= 5) return state;
+        // Balanced pacing: maximum 3 active tickets simultaneously
+        if (state.workOrders.filter((wo) => !wo.completed && !wo.failed).length >= 3) return state;
 
         const randomRack = state.racks[Math.floor(Math.random() * state.racks.length)];
         const types: WorkOrder["type"][] = ["crypto-miner", "dirty-fans", "phase-imbalance"];
@@ -615,7 +616,7 @@ export const useGameStore = create<GameStore>()(
             description: nextDesc,
             reward: nextReward,
             penalty: nextPenalty,
-            timeRemaining: 240,
+            timeRemaining: 360, // Generous 6 minutes to complete
             type: selectedType,
             targetRackId: randomRack.id,
             completed: false,

@@ -18,8 +18,8 @@ export function DCWorld() {
 
     const interval = setInterval(() => {
       tickDayTime(1);
-      // 15% chance every second to generate a new procedural work order
-      if (Math.random() < 0.15) {
+      // Relaxed 3.5% chance every second to generate a new ticket (~1 ticket every 28s) for balanced gameplay pacing
+      if (Math.random() < 0.035) {
         generateProceduralTicket();
       }
     }, 1000);
