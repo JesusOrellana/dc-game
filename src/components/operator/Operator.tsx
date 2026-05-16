@@ -9,7 +9,7 @@ export function Operator() {
   const meshGroupRef = useRef<THREE.Group>(null);
   const { camera }   = useThree();
   const keys         = useRef({ w: false, a: false, s: false, d: false });
-  const { setActiveInteraction, racks, thermalVisionMode } = useGameStore();
+  const { setActiveInteraction, racks, thermalVisionMode, cartAttached } = useGameStore();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -36,7 +36,8 @@ export function Operator() {
   useFrame((_, delta) => {
     if (!bodyRef.current || !meshGroupRef.current) return;
 
-    const speed = 8.0;
+    // Movement speed drops from 8.0 to 5.2 m/s when pushing the heavy Crash Cart
+    const speed = cartAttached ? 5.2 : 8.0;
     const vel = { x: 0, z: 0 };
 
     if (keys.current.w) vel.z -= speed;
@@ -61,9 +62,10 @@ export function Operator() {
     }
 
     const pos = bodyRef.current.translation();
-    camera.position.lerp(new THREE.Vector3(pos.x + 15, pos.y + 20, pos.z + 15), delta * 8);
+    camera.position.lerp(new THREE.Vector3(pos.x + 16, pos.y + 22, pos.z + 16), delta * 8);
     camera.lookAt(new THREE.Vector3(pos.x, pos.y, pos.z));
 
+    // Interaction Proximity Checks
     let closestRackId: number | null = null;
     let minDist = 3.8;
 
@@ -80,8 +82,15 @@ export function Operator() {
     if (closestRackId !== null) {
       setActiveInteraction("rack", closestRackId);
     } else {
-      const pduDist = Math.hypot(pos.x - 0, pos.z - (-14));
-      if (pduDist < 4.5) {
+      const shopDist = Math.hypot(pos.x - (-12), pos.z - 12);
+      const cartDist = Math.hypot(pos.x - (-8), pos.z - 8);
+      const pduDist  = Math.hypot(pos.x - 0, pos.z - (-15));
+
+      if (shopDist < 4.0) {
+        setActiveInteraction("shop", null);
+      } else if (cartDist < 3.5 && !cartAttached) {
+        setActiveInteraction("cart", null);
+      } else if (pduDist < 4.5) {
         setActiveInteraction("pdu", null);
       } else {
         setActiveInteraction(null, null);
@@ -92,22 +101,21 @@ export function Operator() {
   return (
     <RigidBody ref={bodyRef} colliders="cuboid" lockRotations position={[0, 2, 8]}>
       <group ref={meshGroupRef}>
-        {/* Head (Yellow Hard Hat & Skin) */}
+        {/* Head */}
         <mesh position={[0, 2.0, 0]} castShadow>
           <boxGeometry args={[0.7, 0.5, 0.7]} />
-          <meshStandardMaterial color={thermalVisionMode ? "#0f172a" : "#facc15"} roughness={0.3} /> {/* Bright Yellow Helmet */}
+          <meshStandardMaterial color={thermalVisionMode ? "#0f172a" : "#facc15"} roughness={0.3} />
         </mesh>
         <mesh position={[0, 1.6, 0]} castShadow>
           <boxGeometry args={[0.6, 0.4, 0.6]} />
-          <meshStandardMaterial color={thermalVisionMode ? "#0f172a" : "#fed7aa"} roughness={0.6} /> {/* Skin */}
+          <meshStandardMaterial color={thermalVisionMode ? "#0f172a" : "#fed7aa"} roughness={0.6} />
         </mesh>
 
-        {/* Torso (High-Vis Orange Industrial Vest with Reflective Strips) */}
+        {/* Torso */}
         <mesh position={[0, 0.9, 0]} castShadow>
           <boxGeometry args={[0.85, 1.0, 0.5]} />
-          <meshStandardMaterial color={thermalVisionMode ? "#ff4500" : "#f97316"} roughness={0.4} /> {/* Orange Vest */}
+          <meshStandardMaterial color={thermalVisionMode ? "#ff4500" : "#f97316"} roughness={0.4} />
         </mesh>
-        {/* Reflective Yellow Safety Band on Vest */}
         {!thermalVisionMode && (
           <mesh position={[0, 0.9, 0.26]}>
             <boxGeometry args={[0.85, 0.2, 0.02]} />
@@ -125,7 +133,7 @@ export function Operator() {
           <meshStandardMaterial color={thermalVisionMode ? "#0f172a" : "#334155"} roughness={0.7} />
         </mesh>
 
-        {/* Legs (Industrial Dark Pants contrasting with bright floor) */}
+        {/* Legs */}
         <mesh position={[-0.25, 0.1, 0]} castShadow>
           <boxGeometry args={[0.3, 0.8, 0.3]} />
           <meshStandardMaterial color={thermalVisionMode ? "#0f172a" : "#1e293b"} roughness={0.8} />
